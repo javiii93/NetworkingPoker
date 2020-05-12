@@ -28,7 +28,10 @@ namespace Com.MyCompany.MyGame
 
 
         #endregion
-
+        #region Public Vars
+        public InputField _inputField;
+        public InputField _inputField2;
+        #endregion
 
         #region MonoBehaviour CallBacks
 
@@ -40,16 +43,22 @@ namespace Com.MyCompany.MyGame
         {
 
 
-            string defaultName = string.Empty;
-            InputField _inputField = this.GetComponent<InputField>();
-            if (_inputField != null)
+            
+
+           // InputField _inputField = this.GetComponent<InputField>();
+           // InputField _inputField2 = this.GetComponent<InputField>();
+            string defaultName = _inputField.text.ToString();
+            string defaultPass = _inputField2.text.ToString();
+            Debug.LogFormat(defaultName);
+            Debug.LogFormat(defaultPass);
+            /*if (_inputField != null)
             {
                 if (PlayerPrefs.HasKey(playerNamePrefKey))
                 {
                     defaultName = PlayerPrefs.GetString(playerNamePrefKey);
                     _inputField.text = defaultName;
                 }
-            }
+            }*/
 
 
             PhotonNetwork.NickName = defaultName;

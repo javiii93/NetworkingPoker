@@ -3,6 +3,12 @@ using System.Collections.Generic;
 using UnityEngine;
 using Photon.Pun;
 using Photon.Realtime;
+using System.Net.Http;
+using UnityEngine.Networking;
+using UnityEngine.UI;
+using System.Text;
+using System;
+using System.Net;
 
 
 namespace Com.MyCompany.MyGame
@@ -33,15 +39,25 @@ namespace Com.MyCompany.MyGame
         [Tooltip("The UI Label to inform the user that the connection is in progress")]
         [SerializeField]
         private GameObject progressLabel;
+      /*  [SerializeField]
+        private GameObject _inputField;
+        [SerializeField]
+        private GameObject _inputField2;*/
+        string email, password;
+        //private static readonly HttpClient client = new HttpClient();
         /// <summary>
         /// Keep track of the current process. Since connection is asynchronous and is based on several callbacks from Photon,
         /// we need to keep track of this to properly adjust the behavior when we receive call back by Photon.
         /// Typically this is used for the OnConnectedToMaster() callback.
         /// </summary>
         bool isConnecting;
-
+        //JsonObject playerInfo;
+        //string info;
         #endregion
-
+        #region public Fields
+        public InputField inputField1, inputField2;
+        public static string data="";
+        #endregion
 
         #region MonoBehaviour CallBacks
 
@@ -62,10 +78,77 @@ namespace Com.MyCompany.MyGame
         /// </summary>
         void Start()
         {
+            //launcher = new Launcher();
             progressLabel.SetActive(false);
             controlPanel.SetActive(true);
+            
         }
 
+        /* IEnumerator request(WWW www)
+         {
+
+           yield return www;
+         }*/
+        IEnumerator Upload(string email, string password)
+        {
+            WWWForm form = new WWWForm();
+            form.AddField("email", email);
+            form.AddField("password", password);
+
+           /* form.AddField("email", "alumn@poker.com");
+            form.AddField("password", "12345678");*/
+
+            UnityWebRequest www = UnityWebRequest.Post("https://pokernetwork.herokuapp.com/users/login", form);
+            yield return www.Send();
+
+            if (www.isNetworkError)
+            {
+                Debug.Log(www.error);
+            }
+            else
+            {
+                // Show results as text
+                Debug.Log(www.downloadHandler.text);
+                Debug.Log("Login complete!");
+            }
+        }
+        IEnumerator Post(string email, string password)
+        {
+            string bodyJsonString="{\"email\" : \""+email+"\", \"password\" : \""+password+"\"}";
+            Debug.Log(bodyJsonString);
+            var request = new UnityWebRequest("https://pokernetwork.herokuapp.com/users/login", "POST");
+            byte[] bodyRaw = Encoding.UTF8.GetBytes(bodyJsonString);
+            request.uploadHandler = (UploadHandler)new UploadHandlerRaw(bodyRaw);
+            request.downloadHandler = (DownloadHandler)new DownloadHandlerBuffer();
+            request.SetRequestHeader("Content-Type", "application/json");
+            yield return request.SendWebRequest();
+            Debug.Log("Status Code: " + request.responseCode);
+            data= request.downloadHandler.text;
+            //Debug.Log(all);
+            // playerInfo = request;
+            /*string encodedString = "{\"field1\": 0.5,\"field2\": \"sampletext\",\"field3\": [1,2,3]}";
+            JSONObject j = new JSONObject(encodedString);*/
+
+
+        }
+        IEnumerator GetText()
+        {
+            UnityWebRequest www = UnityWebRequest.Get("https://pokernetwork.herokuapp.com/");
+            yield return www.Send();
+
+            if (www.isNetworkError)
+            {
+                Debug.Log(www.error);
+            }
+            else
+            {
+                // Show results as text
+                Debug.Log(www.downloadHandler.text);
+
+                // Or retrieve results as binary data
+                byte[] results = www.downloadHandler.data;
+            }
+        }
 
         #endregion
 
@@ -80,8 +163,30 @@ namespace Com.MyCompany.MyGame
         /// </summary>
         public void Connect()
         {
+           // StartCoroutine(Post("alumn@poker.com", "12345678"));
+            StartCoroutine(Post(inputField1.text.ToString(), inputField2.text.ToString()));
             progressLabel.SetActive(true);
             controlPanel.SetActive(false);
+            
+            //Debug.Log(playerInfo.downloadHandler.text);
+            /* WWWForm formDate = new WWWForm();
+             formDate.AddField("email", "alumn@poker.com");
+             formDate.AddField("password", "12345678");
+             WWW www = new WWW("https://pokernetwork.herokuapp.com/users/login",formDate);
+             StartCoroutine(request(www));
+             Debug.Log(info);*/
+            /* var values = new Dictionary<string, string>
+ {
+     { "email", "alumn@poker.com" },
+     { "password", "12345678" }
+ };
+
+             var content = new FormUrlEncodedContent(values);
+
+             var response = await client.PostAsync("https://pokernetwork.herokuapp.com/users/login", content);
+
+             var responseString = await response.Content.ReadAsStringAsync();*/
+
             // we check if we are connected or not, we join if we are , else we initiate the connection to the server.
             if (PhotonNetwork.IsConnected)
             {
@@ -98,8 +203,7 @@ namespace Com.MyCompany.MyGame
             }
             
         }
-
-
+        
         #endregion
         #region MonoBehaviourPunCallbacks Callbacks
 
